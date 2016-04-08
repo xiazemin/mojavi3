@@ -1,0 +1,100 @@
+Mojavi Changelog for 1.0
+----------------------------------
+
+Changes from 0.9.6
+1.  config.php now specifies MOJAVI_DIR as the directory that actually
+    contains the classes, instead of the parent directory. This allows you
+    to install core Mojavi library files in another directory. This
+    essentially gets rid of the lib/ prefix from the require statements.
+2.  View class names do not suffix the view type any longer. Example:
+
+    --------------------
+    FoobarView_success.class.php contains:
+
+    class FoobarView extends View {}
+
+    instead of containing:
+
+    class FoobarView_success extends View {}
+    --------------
+
+    You still have a separate file for each view, but the class name is the same.
+    There is no future concern for naming conflicts that we need to also name
+    the view classes differently.
+
+3.  All class methods that take any variant of &$controller, &$request, &$user
+    now do not take them. If there were other parameters in the method declaration,
+    then they are the only ones left. The parent classes such as Action,
+    Filter and View all take a &$controller parameter in the constructor which
+    sets inheritable data. So, you now need a constructor in each of your classes
+    that extend a Mojavi class. And the declaration needs to be as such:
+
+    --------------------
+    function & MyClass (&$controller) { parent::WHATEVERPARENT($controller); }
+    --------------------
+
+    Example of an old statement, and the replacement:
+
+    --------------------
+    function registerValidators (&$controller, &$request, &$validatorManager);
+
+    replacement:
+
+    function registerValidators (&$validatorManager);
+    --------------------
+
+    If you're extending Action, you would call 'parent::Action($controller)'.
+    This change means less passing of references and if a future upgrade
+    requires access to an additional member, we can easily modify the parent
+    classes to provide data that you can directly access, instead of modifying
+    all method declarations that would otherwise pass the new member.
+
+    You now retrieve $controller, $mojavi, $request, $user like so:
+
+    --------------------
+    $this->_controller
+    $this->_mojavi
+    $this->_request
+    $this->_user
+    --------------------
+
+Changes from 0.9.5
+1.  Modified Action::registerValidators to now accept the Request instance.
+    The new declaration is:
+    registerValidators(&$controller, &$request, &$validatorManager)
+2.  Removed Action::getErrorView() and replaced it with
+    Action::handleError(). This is a more informative way to execute code
+    if a validation error occurs.
+3.  Fixed a bug with $mojavi['current_action_path'] and
+    $mojavi['current_module_path'] that would not report the current module
+    and action if the request had been forwarded.
+4.  Added ExecutionChain class. This provides a way to track the entire
+    route of a request. It can be retrieved with $controller->getExecutionChain().
+5.  Fixed a bug in Controller that would not load module-level filter lists.
+6.  Added Request::getErrors() that will return an array of all validation
+    errors.
+7.  Modified Action::getPrivilege() to return an array with two values.
+    The first value is the privilege, the second is the namespace. This replaces
+    the old method of using keys for name and namespace.
+
+Changes from 0.9.4
+1.  Fixed an ExecutionFilter bug that sent the wrong parameter to
+    the validate() method of an Action implementation.
+2.  Made a lot of changes to all classes, which concerned reference
+    access. It is recommended that you overwrite all lib/* files with the
+    new versions.
+3.  Added SmartyRenderer class, which supports Smarty template files.
+4.  Added SmartTemplatesRenderer class, which supports SmartTemplates template files.
+5.  Made Renderer constructor template parameter optional, and added
+    Renderer::setTemplate().
+6.  Added genURL() method to Controller, which allows you to generate a URL
+    in either GET format or PATH format.
+7.  Controller:genURL(), Filter::initialize() and Validator::initialize()
+    do not take the $params parameter as a reference any longer.
+8.  Removed WEB_CONTROLLER_PATH configuration variable.
+9.  Added URL_FORMAT configuration variable. This tells the framework how to
+    format urls that are auto-generated with Controller:getControllerPath().
+
+Changes from 0.9.3
+1.  Renamed the Template class to Renderer.
+2.  Added cleanup() method to View class.
